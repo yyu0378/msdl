@@ -106,8 +106,6 @@ function onDownloadsXhrChange() {
 }
 
 function getLanguages(productId) {
-    sessionId.value = uuidv4();
-
     msContent.style.display = "none";
     pleaseWait.style.display = "block";
 
@@ -147,7 +145,8 @@ function prepareDownload(id) {
     productsList.style.display = 'none';
     backToProductsDiv.style.display = 'block';
 
-    return getLanguages(id);
+    sessionId.value = uuidv4();
+    fetch('https://vlscppe.microsoft.com/tags?org_id=y6jn8c31&session_id=' + encodeURIComponent(sessionId.value)).then(() => { getLanguages(id) }, () => { getLanguages(id) });
 }
 
 function addTableElement(table, value, data) {
