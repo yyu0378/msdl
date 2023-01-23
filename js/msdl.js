@@ -14,14 +14,14 @@ var msdlXhr = new XMLHttpRequest();
 var availableProducts = {};
 
 function uuidv4() {
-    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     );
 }
 
 function updateVars() {
     var id = document.getElementById('product-languages').value;
-    if(id == "") {
+    if (id == "") {
         document.getElementById('submit-sku').disabled = 1;
         return;
     }
@@ -35,9 +35,8 @@ function updateVars() {
 function checkForError(content) {
     var errorMessage = document.getElementById('errorModalMessage');
 
-    if(errorMessage) {
+    if (errorMessage) {
         processingError.style.display = "block";
-        content.style.display = "none";
         return true;
     }
 
@@ -75,16 +74,16 @@ function fixLanguageList() {
 }
 
 function onLanguageXhrChange() {
-    if(!(this.readyState == 4 && this.status == 200))
+    if (!(this.readyState == 4 && this.status == 200))
         return;
-    
-    if(pleaseWait.style.display != "block")
+
+    if (pleaseWait.style.display != "block")
         return;
 
     pleaseWait.style.display = "none";
     msContent.style.display = "block";
 
-    if(!updateContent(msContent, this.responseText))
+    if (!updateContent(msContent, this.responseText))
         return;
 
     fixLanguageList();
@@ -92,16 +91,16 @@ function onLanguageXhrChange() {
 }
 
 function onDownloadsXhrChange() {
-    if(!(this.readyState == 4 && this.status == 200))
+    if (!(this.readyState == 4 && this.status == 200))
         return;
-    
-    if(pleaseWait.style.display != "block")
+
+    if (pleaseWait.style.display != "block")
         return;
 
     pleaseWait.style.display = "none";
     msContent.style.display = "block";
 
-    if(!updateContent(msContent, this.responseText))
+    if (!updateContent(msContent, this.responseText))
         return;
 }
 
@@ -109,7 +108,7 @@ function getLanguages(productId) {
     msContent.style.display = "none";
     pleaseWait.style.display = "block";
 
-    var url = langsUrl + "&productEditionId=" + encodeURIComponent(productId) + 
+    var url = langsUrl + "&productEditionId=" + encodeURIComponent(productId) +
         "&sessionId=" + encodeURIComponent(sessionId.value);
 
     msdlXhr.abort();
@@ -125,7 +124,7 @@ function getDownload() {
     var id = updateVars();
 
     var url = downUrl + "&skuId=" + encodeURIComponent(id['id']) +
-        "&language=" + encodeURIComponent(id['language'])+ 
+        "&language=" + encodeURIComponent(id['language']) +
         "&sessionId=" + encodeURIComponent(sessionId.value);
 
     msdlXhr.abort();
@@ -146,7 +145,11 @@ function prepareDownload(id) {
     backToProductsDiv.style.display = 'block';
 
     sessionId.value = uuidv4();
-    fetch('https://vlscppe.microsoft.com/tags?org_id=y6jn8c31&session_id=' + encodeURIComponent(sessionId.value)).then(() => { getLanguages(id) }, () => { getLanguages(id) });
+
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => { getLanguages(id) };
+    xhr.open("GET", "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id=" + sessionId.value, true);
+    xhr.send();
 }
 
 function addTableElement(table, value, data) {
@@ -170,10 +173,10 @@ function createTable(data, search) {
 
     table.innerHTML = "";
 
-    for(value in data) {
-        if(data[value].match(regex) == null)
+    for (value in data) {
+        if (data[value].match(regex) == null)
             continue;
-    
+
         addTableElement(table, value, data);
     }
 }
@@ -191,7 +194,7 @@ function setSearch(query) {
 
 function checkHash() {
     var hash = window.location.hash;
-    if(hash.length == 0)
+    if (hash.length == 0)
         return
 
     prepareDownload(hash.substring(1))
@@ -199,7 +202,7 @@ function checkHash() {
 
 function preparePage(resp) {
     var products = JSON.parse(resp);
-    if(!products['products']) {
+    if (!products['products']) {
         pleaseWait.style.display = 'none';
         processingError.style.display = 'block';
         return;
@@ -216,11 +219,11 @@ function preparePage(resp) {
 
 var xhr = new XMLHttpRequest();
 
-xhr.onreadystatechange = function() {
-    if(this.readyState != 4)
+xhr.onreadystatechange = function () {
+    if (this.readyState != 4)
         return;
 
-    if(this.status != 200) {
+    if (this.status != 200) {
         pleaseWait.style.display = 'none';
         processingError.style.display = 'block';
         return;
