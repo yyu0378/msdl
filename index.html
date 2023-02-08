@@ -63,12 +63,17 @@
 
     <div id="msdl-processing-error">
         <h2>Error</h2>
-        <p>An error has occurred while processing your request.</p>
+        <p>An error has occurred while processing your request. Try clicking the use shared session button if reloading
+            the page does not work.</p>
     </div>
 
     <div id="back-to-products">
         <hr>
         <button onClick="backToProducts();">Go back to the product list</button>
+    </div>
+
+    <div id="use-shared-session">
+        <button onClick="useSharedSession();">Use shared session (use if download keeps failing)</button>
     </div>
 
     <input id="msdl-session-id" type="hidden">

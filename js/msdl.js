@@ -1,5 +1,6 @@
 const langsUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cd06bda8-ff9c-4a6e-912a-b92a21f42526&host=www.microsoft.com&segments=software-download%2cwindows11&query=&action=getskuinformationbyproductedition&sdVersion=2";
 const downUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cfa9e580-a81e-4a4b-a846-7b21bf4e2e5b&host=www.microsoft.com&segments=software-download%2Cwindows11&query=&action=GetProductDownloadLinksBySku&sdVersion=2";
+const sessionUrl = "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id="
 
 const sessionId = document.getElementById('msdl-session-id');
 const msContent = document.getElementById('msdl-ms-content');
@@ -8,10 +9,15 @@ const processingError = document.getElementById('msdl-processing-error');
 
 const productsList = document.getElementById('products-list');
 const backToProductsDiv = document.getElementById('back-to-products');
+const useSharedSessionDiv = document.getElementById('use-shared-session');
+
+const sharedSessionGUID = "47cbc254-4a79-4be6-9866-9c625eb20911";
 
 var msdlXhr = new XMLHttpRequest();
 
 var availableProducts = {};
+
+var sharedSession = false;
 
 function uuidv4() {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
@@ -37,6 +43,7 @@ function checkForError(content) {
 
     if (errorMessage) {
         processingError.style.display = "block";
+        useSharedSessionDiv.style.display = "block";
         return true;
     }
 
@@ -49,13 +56,15 @@ function updateContent(content, response) {
 }
 
 function abortAndHide() {
+    backToProductsDiv.style.display = 'none';
+    useSharedSessionDiv.style.display = 'none';
+    productsList.style.display = 'block';
+
     msdlXhr.abort();
 
     msContent.style.display = 'none';
     pleaseWait.style.display = 'none';
     processingError.style.display = 'none';
-
-    window.location.hash = "";
 }
 
 function fixSubmitSku() {
@@ -100,8 +109,9 @@ function onDownloadsXhrChange() {
     pleaseWait.style.display = "none";
     msContent.style.display = "block";
 
-    if (!updateContent(msContent, this.responseText))
-        return;
+    if (updateContent(msContent, this.responseText) && !sharedSession) {
+        fetch(sessionUrl + sharedSessionGUID);
+    }
 }
 
 function getLanguages(productId) {
@@ -109,7 +119,7 @@ function getLanguages(productId) {
     pleaseWait.style.display = "block";
 
     var url = langsUrl + "&productEditionId=" + encodeURIComponent(productId) +
-        "&sessionId=" + encodeURIComponent(sessionId.value);
+        "&sessionId=" + (sharedSession ? sharedSessionGUID : sessionId.value);
 
     msdlXhr.abort();
     msdlXhr.onreadystatechange = onLanguageXhrChange;
@@ -125,7 +135,7 @@ function getDownload() {
 
     var url = downUrl + "&skuId=" + encodeURIComponent(id['id']) +
         "&language=" + encodeURIComponent(id['language']) +
-        "&sessionId=" + encodeURIComponent(sessionId.value);
+        "&sessionId=" + (sharedSession ? sharedSessionGUID : sessionId.value);
 
     msdlXhr.abort();
     msdlXhr.onreadystatechange = onDownloadsXhrChange;
@@ -135,20 +145,22 @@ function getDownload() {
 
 function backToProducts() {
     abortAndHide();
+    window.location.hash = "";
+}
 
-    backToProductsDiv.style.display = 'none';
-    productsList.style.display = 'block';
+function useSharedSession() {
+    sharedSession = true;
+    abortAndHide();
+    prepareDownload(window.location.hash.substring(1))
 }
 
 function prepareDownload(id) {
     productsList.style.display = 'none';
     backToProductsDiv.style.display = 'block';
 
-    sessionId.value = uuidv4();
-
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => { getLanguages(id) };
-    xhr.open("GET", "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id=" + sessionId.value, true);
+    xhr.open("GET", sessionUrl + sessionId.value, true);
     xhr.send();
 }
 
@@ -231,6 +243,8 @@ xhr.onreadystatechange = function () {
 
     preparePage(this.responseText);
 };
+
+sessionId.value = uuidv4();
 
 xhr.open("GET", 'data/products.json', true);
 xhr.send();
