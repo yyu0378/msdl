@@ -194,14 +194,12 @@ function checkHash() {
 }
 
 function preparePage(resp) {
-    let products = JSON.parse(resp);
-    if (!products['products']) {
+    availableProducts = JSON.parse(resp);
+    if (!availableProducts) {
         pleaseWait.style.display = 'none';
         processingError.style.display = 'block';
         return;
     }
-
-    availableProducts = products['products'];
 
     pleaseWait.style.display = 'none';
     productsList.style.display = 'block';
