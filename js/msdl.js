@@ -2,6 +2,8 @@ const langsUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/ht
 const downUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cfa9e580-a81e-4a4b-a846-7b21bf4e2e5b&host=www.microsoft.com&segments=software-download%2Cwindows11&query=&action=GetProductDownloadLinksBySku&sdVersion=2";
 const sessionUrl = "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id="
 
+const apiUrl = "https://massgrave.dev/api/msdl/proxy"
+
 const sessionId = document.getElementById('msdl-session-id');
 const msContent = document.getElementById('msdl-ms-content');
 const pleaseWait = document.getElementById('msdl-please-wait');
@@ -75,17 +77,43 @@ function onDownloadsXhrChange() {
     if (pleaseWait.style.display != "block")
         return;
 
-    pleaseWait.style.display = "none";
     msContent.style.display = "block";
 
     let wasSuccessful = updateContent(msContent, this.responseText);
 
-    if (wasSuccessful && !sharedSession) {
-        fetch(sessionUrl + sharedSessionGUID);
+    if (wasSuccessful) {
+        pleaseWait.style.display = "none";
+        if (!sharedSession) {
+            fetch(sessionUrl + sharedSessionGUID);
+        }
     }
     else if (!sharedSession) {
-        useSharedSession()
+        useSharedSession();
     }
+    else {
+        getFromServer();
+    }
+}
+
+function getFromServer() {
+    let url = apiUrl + "?product_id=" + window.location.hash.substring(1) +
+        "&sku_id=" + skuId;
+    let xhr = new XMLHttpRequest();
+    xhr.onload = displayResponseFromServer;
+    xhr.open("GET", url, true);
+    xhr.send();
+}
+
+function displayResponseFromServer() {
+    pleaseWait.style.display = "none";
+    processingError.style.display = "none";
+
+    if (!(this.status == 200)) {
+        processingError.style.display = "block";
+        alert(JSON.parse(this.responseText)["Error"])
+        return;
+    }
+    msContent.innerHTML = this.responseText
 }
 
 function getLanguages(productId) {
@@ -125,6 +153,10 @@ function backToProducts() {
 
 function useSharedSession() {
     sharedSession = true;
+    retryDownload();
+}
+
+function retryDownload() {
     pleaseWait.style.display = "block";
     processingError.style.display = 'none';
 
@@ -133,6 +165,7 @@ function useSharedSession() {
     xhr.onload = getDownload;
     xhr.open("GET", url);
     xhr.send();
+
 }
 
 function prepareDownload(id) {
