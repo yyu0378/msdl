@@ -96,6 +96,7 @@ function onDownloadsXhrChange() {
 }
 
 function getFromServer() {
+    processingError.style.display = "none";
     let url = apiUrl + "?product_id=" + window.location.hash.substring(1) +
         "&sku_id=" + skuId;
     let xhr = new XMLHttpRequest();
@@ -106,7 +107,6 @@ function getFromServer() {
 
 function displayResponseFromServer() {
     pleaseWait.style.display = "none";
-    processingError.style.display = "none";
 
     if (!(this.status == 200)) {
         processingError.style.display = "block";
