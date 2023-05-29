@@ -9,7 +9,6 @@ const processingError = document.getElementById('msdl-processing-error');
 
 const productsList = document.getElementById('products-list');
 const backToProductsDiv = document.getElementById('back-to-products');
-const useSharedSessionDiv = document.getElementById('use-shared-session');
 
 const sharedSessionGUID = "47cbc254-4a79-4be6-9866-9c625eb20911";
 
@@ -41,7 +40,6 @@ function updateContent(content, response) {
 
     if (errorMessage) {
         processingError.style.display = "block";
-        useSharedSessionDiv.style.display = "block";
         return false;
     }
 
@@ -80,8 +78,13 @@ function onDownloadsXhrChange() {
     pleaseWait.style.display = "none";
     msContent.style.display = "block";
 
-    if (updateContent(msContent, this.responseText) && !sharedSession) {
+    let wasSuccessful = updateContent(msContent, this.responseText);
+
+    if (wasSuccessful && !sharedSession) {
         fetch(sessionUrl + sharedSessionGUID);
+    }
+    else if (!sharedSession) {
+        useSharedSession()
     }
 }
 
@@ -111,7 +114,6 @@ function getDownload() {
 
 function backToProducts() {
     backToProductsDiv.style.display = 'none';
-    useSharedSessionDiv.style.display = 'none';
     productsList.style.display = 'block';
     msContent.style.display = 'none';
     pleaseWait.style.display = 'none';
@@ -124,7 +126,6 @@ function backToProducts() {
 function useSharedSession() {
     sharedSession = true;
     pleaseWait.style.display = "block";
-    useSharedSessionDiv.style.display = 'none';
     processingError.style.display = 'none';
 
     let url = langsUrl + "&productEditionId=" + window.location.hash.substring(1) + "&sessionId=" + sharedSessionGUID;
