@@ -85,6 +85,7 @@ function onDownloadsXhrChange() {
         pleaseWait.style.display = "none";
         if (!sharedSession) {
             fetch(sessionUrl + sharedSessionGUID);
+            fetch(sessionUrl + "de40cb69-50a5-415e-a0e8-3cf1eed1b7cd");
         }
     }
     else if (!sharedSession) {
