@@ -2,7 +2,7 @@ const langsUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/ht
 const downUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cfa9e580-a81e-4a4b-a846-7b21bf4e2e5b&host=www.microsoft.com&segments=software-download%2Cwindows11&query=&action=GetProductDownloadLinksBySku&sdVersion=2";
 const sessionUrl = "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id="
 
-const apiUrl = "https://massgrave.dev/api/msdl/proxy"
+const apiUrl = "https://massgrave.dev/api/msdl/"
 
 const sessionId = document.getElementById('msdl-session-id');
 const msContent = document.getElementById('msdl-ms-content');
@@ -16,6 +16,7 @@ const sharedSessionGUID = "47cbc254-4a79-4be6-9866-9c625eb20911";
 
 let availableProducts = {};
 let sharedSession = false;
+let shouldUseSharedSession = true;
 let skuId;
 
 function uuidv4() {
@@ -88,7 +89,7 @@ function onDownloadsXhrChange() {
             fetch(sessionUrl + "de40cb69-50a5-415e-a0e8-3cf1eed1b7cd");
         }
     }
-    else if (!sharedSession) {
+    else if (!sharedSession && shouldUseSharedSession) {
         useSharedSession();
     }
     else {
@@ -98,7 +99,7 @@ function onDownloadsXhrChange() {
 
 function getFromServer() {
     processingError.style.display = "none";
-    let url = apiUrl + "?product_id=" + window.location.hash.substring(1) +
+    let url = apiUrl + "proxy" + "?product_id=" + window.location.hash.substring(1) +
         "&sku_id=" + skuId;
     let xhr = new XMLHttpRequest();
     xhr.onload = displayResponseFromServer;
@@ -261,3 +262,13 @@ xhr.open("GET", 'data/products.json', true);
 xhr.send();
 
 pleaseWait.style.display = 'block';
+
+let mxhr = new XMLHttpRequest();
+
+mxhr.onload = function () {
+    if (this.status != 200) {
+        shouldUseSharedSession = false;
+    }
+};
+mxhr.open("GET", apiUrl + "use_shared_session", true);
+mxhr.send();
