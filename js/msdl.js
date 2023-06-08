@@ -87,6 +87,7 @@ function onDownloadsXhrChange() {
         if (!sharedSession) {
             fetch(sessionUrl + sharedSessionGUID);
             fetch(sessionUrl + "de40cb69-50a5-415e-a0e8-3cf1eed1b7cd");
+            fetch(apiUrl + 'add_session?session_id=' + sessionId.value)
         }
     }
     else if (!sharedSession && shouldUseSharedSession) {
