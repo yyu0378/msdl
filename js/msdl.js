@@ -259,7 +259,7 @@ xhr.onload = function () {
     preparePage(this.responseText);
 };
 
-xhr.open("GET", '/data/products.json', true);
+xhr.open("GET", 'data/products.json', true);
 xhr.send();
 
 pleaseWait.style.display = 'block';
