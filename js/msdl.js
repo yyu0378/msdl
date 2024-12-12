@@ -1,5 +1,6 @@
+const msApiUrl = "https://www.microsoft.com/software-download-connector/api/"
+const parms = "?profile=606624d44113&Locale=en-US&sessionID="
 const langsUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cd06bda8-ff9c-4a6e-912a-b92a21f42526&host=www.microsoft.com&segments=software-download%2cwindows11&query=&action=getskuinformationbyproductedition&sdVersion=2";
-const downUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cfa9e580-a81e-4a4b-a846-7b21bf4e2e5b&host=www.microsoft.com&segments=software-download%2Cwindows11&query=&action=GetProductDownloadLinksBySku&sdVersion=2";
 const sessionUrl = "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id="
 
 const apiUrl = "https://api.gravesoft.dev/msdl/"
@@ -49,6 +50,47 @@ function updateContent(content, response) {
     return true;
 }
 
+function langJsonStrToHTML(jsonStr) {
+    let json = JSON.parse(jsonStr);
+    let container = document.createElement('div');
+
+    let header = document.createElement('h2');
+    header.textContent = "Select the product language";
+    container.appendChild(header);
+
+    let info = document.createElement('p');
+    info.innerHTML = "You'll need to choose the same language when you install Windows. To see what language you're currently using, go to <strong>Time and language</strong> in PC settings or <strong>Region</strong> in Control Panel.";
+    container.appendChild(info);
+
+    let select = document.createElement('select');
+    select.id = "product-languages";
+
+    let defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.selected = "selected";
+    defaultOption.textContent = "Choose one";
+    select.appendChild(defaultOption);
+
+    json.Skus.forEach(sku => {
+        let option = document.createElement('option');
+        option.value = JSON.stringify({ id: sku.Id });
+        option.textContent = sku.LocalizedLanguage;
+        select.appendChild(option);
+    });
+
+    container.appendChild(select);
+
+    let button = document.createElement('button');
+    button.id = "submit-sku";
+    button.textContent = "Submit";
+    button.disabled = true;
+    button.setAttribute("onClick", "getDownload();");
+
+    container.appendChild(button);
+
+    return container.innerHTML;
+}
+
 function onLanguageXhrChange() {
     if (!(this.status == 200))
         return;
@@ -59,7 +101,9 @@ function onLanguageXhrChange() {
     pleaseWait.style.display = "none";
     msContent.style.display = "block";
 
-    if (!updateContent(msContent, this.responseText))
+    let langHtml = langJsonStrToHTML(this.responseText);
+
+    if (!updateContent(msContent, langHtml))
         return;
 
     let submitSku = document.getElementById('submit-sku');
@@ -120,9 +164,7 @@ function displayResponseFromServer() {
 }
 
 function getLanguages(productId) {
-    let url = langsUrl + "&productEditionId=" + productId +
-        "&sessionId=" + (sharedSession ? sharedSessionGUID : sessionId.value);
-
+    let url = `${msApiUrl}getskuinformationbyproductedition${parms}${sessionId.value}&ProductEditionId=${productId}`;
     let xhr = new XMLHttpRequest();
     xhr.onload = onLanguageXhrChange;
     xhr.open("GET", url, true);
@@ -135,7 +177,7 @@ function getDownload() {
 
     skuId = skuId ? skuId : updateVars();
 
-    let url = downUrl + "&skuId=" + skuId + "&sessionId=" + (sharedSession ? sharedSessionGUID : sessionId.value);
+    let url = `${msApiUrl}GetProductDownloadLinksBySku${parms}${sessionId.value}&SKU=${skuId}`;
 
     let xhr = new XMLHttpRequest();
     xhr.onload = onDownloadsXhrChange;
