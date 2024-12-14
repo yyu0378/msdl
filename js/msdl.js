@@ -109,7 +109,7 @@ function onDownloadsXhrChange() {
     let j = JSON.parse(this.responseText)
 
     let wasSuccessful = true;
-    if (j["Error"]) {
+    if (j["Errors"]) {
         processingError.style.display = "block";
         wasSuccessful = false;
     }
