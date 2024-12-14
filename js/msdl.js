@@ -40,14 +40,6 @@ function updateVars() {
 
 function updateContent(content, response) {
     content.innerHTML = response;
-    let errorMessage = document.getElementById('errorModalMessage');
-
-    if (errorMessage) {
-        processingError.style.display = "block";
-        return false;
-    }
-
-    return true;
 }
 
 function langJsonStrToHTML(jsonStr) {
@@ -103,8 +95,7 @@ function onLanguageXhrChange() {
 
     let langHtml = langJsonStrToHTML(this.responseText);
 
-    if (!updateContent(msContent, langHtml))
-        return;
+    msContent.innerHTML = langHtml
 
     let submitSku = document.getElementById('submit-sku');
     submitSku.setAttribute("onClick", "getDownload();");
@@ -118,6 +109,13 @@ function onLanguageXhrChange() {
 function onDownloadsXhrChange() {
     if (!(this.status == 200))
         return;
+
+    let j = JSON.parse(this.responseText)
+
+    if (j["Error"]) {
+        processingError.style.display = "block";
+        wasSuccessful = false;
+    }
 
     if (pleaseWait.style.display != "block")
         return;
@@ -204,8 +202,8 @@ function useSharedSession() {
 function retryDownload() {
     pleaseWait.style.display = "block";
     processingError.style.display = 'none';
-
-    let url = langsUrl + "&productEditionId=" + window.location.hash.substring(1) + "&sessionId=" + sharedSessionGUID;
+    let productId = window.location.hash.substring(1);
+    let url = `${msApiUrl}getskuinformationbyproductedition${parms}${sharedSessionGUID}&ProductEditionId=${productId}`;
     let xhr = new XMLHttpRequest();
     xhr.onload = getDownload;
     xhr.open("GET", url);
