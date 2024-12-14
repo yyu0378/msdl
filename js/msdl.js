@@ -38,10 +38,6 @@ function updateVars() {
     return JSON.parse(id)['id'];
 }
 
-function updateContent(content, response) {
-    content.innerHTML = response;
-}
-
 function langJsonStrToHTML(jsonStr) {
     let json = JSON.parse(jsonStr);
     let container = document.createElement('div');
@@ -112,6 +108,7 @@ function onDownloadsXhrChange() {
 
     let j = JSON.parse(this.responseText)
 
+    let wasSuccessful = true;
     if (j["Error"]) {
         processingError.style.display = "block";
         wasSuccessful = false;
@@ -120,9 +117,8 @@ function onDownloadsXhrChange() {
     if (pleaseWait.style.display != "block")
         return;
 
+    msContent.innerHTML = this.responseText;
     msContent.style.display = "block";
-
-    let wasSuccessful = updateContent(msContent, this.responseText);
 
     if (wasSuccessful) {
         pleaseWait.style.display = "none";
