@@ -108,12 +108,22 @@ function onDownloadsXhrChange() {
     let response = JSON.parse(this.responseText)
 
     let wasSuccessful = true;
-    if (response.ValidationContainer && response.ValidationContainer.Errors.length > 0) {
+    if (response.Errors || response.ValidationContainer.Errors) {
         processingError.style.display = "block";
         wasSuccessful = false;
     }
 
     if (pleaseWait.style.display != "block") return;
+
+    if (wasSuccessful) {
+        pleaseWait.style.display = "none";
+    } else if (!sharedSession && shouldUseSharedSession) {
+        useSharedSession();
+        return;
+    } else {
+        getFromServer();
+        return;
+    }
 
     msContent.innerHTML = "";
     msContent.style.display = "block";
@@ -137,21 +147,6 @@ function onDownloadsXhrChange() {
     } else {
         msContent.innerHTML = "<p>No download options available.</p>";
     }
-
-    if (wasSuccessful) {
-        pleaseWait.style.display = "none";
-        if (!sharedSession) {
-            fetch(sessionUrl + sharedSessionGUID);
-            fetch(sessionUrl + "de40cb69-50a5-415e-a0e8-3cf1eed1b7cd");
-            fetch(apiUrl + 'add_session?session_id=' + sessionId.value)
-        }
-    }
-    else if (!sharedSession && shouldUseSharedSession) {
-        useSharedSession();
-    }
-    else {
-        getFromServer();
-    }
 }
 
 function getFromServer() {
@@ -167,12 +162,16 @@ function getFromServer() {
 function displayResponseFromServer() {
     pleaseWait.style.display = "none";
 
+    const response = JSON.parse(this.responseText);
+
     if (this.status !== 200) {
         processingError.style.display = "block";
-        alert(JSON.parse(this.responseText)["Error"])
+        alert(response["Error"])
         return;
     }
+
     msContent.innerHTML = "";
+    msContent.style.display = "block";
 
     if (response.ProductDownloadOptions && response.ProductDownloadOptions.length > 0) {
         response.ProductDownloadOptions.forEach(option => {
@@ -193,7 +192,6 @@ function displayResponseFromServer() {
     } else {
         msContent.innerHTML = "<p>No download options available.</p>";
     }
-
 }
 
 function getLanguages(productId) {
@@ -243,7 +241,6 @@ function retryDownload() {
     xhr.onload = getDownload;
     xhr.open("GET", url);
     xhr.send();
-
 }
 
 function prepareDownload(id) {
