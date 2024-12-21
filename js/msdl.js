@@ -103,36 +103,48 @@ function onLanguageXhrChange() {
 }
 
 function onDownloadsXhrChange() {
-    if (!(this.status == 200))
-        return;
+    if (!(this.status == 200)) return;
 
-    let j = JSON.parse(this.responseText)
+    let response = JSON.parse(this.responseText)
 
     let wasSuccessful = true;
-    if (j["Errors"]) {
+    if (response.Errors || response.ValidationContainer.Errors) {
         processingError.style.display = "block";
         wasSuccessful = false;
     }
 
-    if (pleaseWait.style.display != "block")
-        return;
-
-    msContent.innerHTML = this.responseText;
-    msContent.style.display = "block";
+    if (pleaseWait.style.display != "block") return;
 
     if (wasSuccessful) {
         pleaseWait.style.display = "none";
-        if (!sharedSession) {
-            fetch(sessionUrl + sharedSessionGUID);
-            fetch(sessionUrl + "de40cb69-50a5-415e-a0e8-3cf1eed1b7cd");
-            fetch(apiUrl + 'add_session?session_id=' + sessionId.value)
-        }
-    }
-    else if (!sharedSession && shouldUseSharedSession) {
+    } else if (!sharedSession && shouldUseSharedSession) {
         useSharedSession();
-    }
-    else {
+        return;
+    } else {
         getFromServer();
+        return;
+    }
+
+    msContent.innerHTML = "";
+    msContent.style.display = "block";
+
+    if (response.ProductDownloadOptions && response.ProductDownloadOptions.length > 0) {
+        response.ProductDownloadOptions.forEach(option => {
+            let optionContainer = document.createElement('div');
+
+            let header = document.createElement('h1');
+            header.textContent = `Windows 11 ${option.LocalizedLanguage}`
+
+            let downloadButton = document.createElement('a');
+            downloadButton.href = option.Uri;
+            downloadButton.textContent = `Download ${option.LocalizedProductDisplayName}`;
+            downloadButton.target = "_blank";
+            optionContainer.appendChild(downloadButton);
+
+            msContent.appendChild(optionContainer);
+        });
+    } else {
+        msContent.innerHTML = "<p>No download options available.</p>";
     }
 }
 
@@ -146,15 +158,44 @@ function getFromServer() {
     xhr.send();
 }
 
+function getFileNameFromLink(link) {
+    let raw_link = link.split('?')[0];
+    return raw_link.split('/').pop();
+}
+
 function displayResponseFromServer() {
     pleaseWait.style.display = "none";
 
-    if (!(this.status == 200)) {
+    const response = JSON.parse(this.responseText);
+
+    if (this.status !== 200) {
         processingError.style.display = "block";
-        alert(JSON.parse(this.responseText)["Error"])
+        alert(response["Error"])
         return;
     }
-    msContent.innerHTML = this.responseText
+
+    msContent.innerHTML = "";
+    msContent.style.display = "block";
+
+    if (response.ProductDownloadOptions && response.ProductDownloadOptions.length > 0) {
+        let header = document.createElement('h2');
+        header.textContent = `${response.ProductDownloadOptions[0].ProductDisplayName} ${response.ProductDownloadOptions[0].LocalizedLanguage}`
+        msContent.appendChild(header);
+            
+        response.ProductDownloadOptions.forEach(option => {
+            let downloadButton = document.createElement('a');
+            downloadButton.href = option.Uri;
+            downloadButton.textContent = getFileNameFromLink(option.Uri);
+            downloadButton.target = "_blank";
+    
+            let br = document.createElement('br');
+    
+            msContent.appendChild(downloadButton);
+            msContent.appendChild(br);
+        });
+    } else {
+        msContent.innerHTML = "<p>No download options available.</p>";
+    }
 }
 
 function getLanguages(productId) {
@@ -204,7 +245,6 @@ function retryDownload() {
     xhr.onload = getDownload;
     xhr.open("GET", url);
     xhr.send();
-
 }
 
 function prepareDownload(id) {
