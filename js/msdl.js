@@ -103,22 +103,40 @@ function onLanguageXhrChange() {
 }
 
 function onDownloadsXhrChange() {
-    if (!(this.status == 200))
-        return;
+    if (!(this.status == 200)) return;
 
-    let j = JSON.parse(this.responseText)
+    let response = JSON.parse(this.responseText)
 
     let wasSuccessful = true;
-    if (j["Errors"]) {
+    if (response.ValidationContainer && response.ValidationContainer.Errors.length > 0) {
         processingError.style.display = "block";
         wasSuccessful = false;
     }
 
-    if (pleaseWait.style.display != "block")
-        return;
+    if (pleaseWait.style.display != "block") return;
 
-    msContent.innerHTML = this.responseText;
+    msContent.innerHTML = "";
     msContent.style.display = "block";
+
+    if (response.ProductDownloadOptions && response.ProductDownloadOptions.length > 0) {
+        response.ProductDownloadOptions.forEach(option => {
+            let optionContainer = document.createElement('div');
+
+            let downloadButton = document.createElement('a');
+            downloadButton.href = option.Uri;
+            downloadButton.textContent = `Download ${option.LocalizedProductDisplayName}`;
+            downloadButton.target = "_blank";
+            optionContainer.appendChild(downloadButton);
+
+            let info = document.createElement('p');
+            info.textContent = `Language: ${option.LocalizedLanguage}`;
+            optionContainer.appendChild(info);
+
+            msContent.appendChild(optionContainer);
+        });
+    } else {
+        msContent.innerHTML = "<p>No download options available.</p>";
+    }
 
     if (wasSuccessful) {
         pleaseWait.style.display = "none";
@@ -149,12 +167,33 @@ function getFromServer() {
 function displayResponseFromServer() {
     pleaseWait.style.display = "none";
 
-    if (!(this.status == 200)) {
+    if (this.status !== 200) {
         processingError.style.display = "block";
         alert(JSON.parse(this.responseText)["Error"])
         return;
     }
-    msContent.innerHTML = this.responseText
+    msContent.innerHTML = "";
+
+    if (response.ProductDownloadOptions && response.ProductDownloadOptions.length > 0) {
+        response.ProductDownloadOptions.forEach(option => {
+            let optionContainer = document.createElement('div');
+
+            let downloadButton = document.createElement('a');
+            downloadButton.href = option.Uri;
+            downloadButton.textContent = `Download ${option.LocalizedProductDisplayName}`;
+            downloadButton.target = "_blank";
+            optionContainer.appendChild(downloadButton);
+
+            let info = document.createElement('p');
+            info.textContent = `Language: ${option.LocalizedLanguage}`;
+            optionContainer.appendChild(info);
+
+            msContent.appendChild(optionContainer);
+        });
+    } else {
+        msContent.innerHTML = "<p>No download options available.</p>";
+    }
+
 }
 
 function getLanguages(productId) {
