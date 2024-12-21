@@ -1,6 +1,5 @@
 const msApiUrl = "https://www.microsoft.com/software-download-connector/api/"
 const parms = "?profile=606624d44113&Locale=en-US&sessionID="
-const langsUrl = "https://www.microsoft.com/en-us/api/controls/contentinclude/html?pageId=cd06bda8-ff9c-4a6e-912a-b92a21f42526&host=www.microsoft.com&segments=software-download%2cwindows11&query=&action=getskuinformationbyproductedition&sdVersion=2";
 const sessionUrl = "https://vlscppe.microsoft.com/fp/tags?org_id=y6jn8c31&session_id="
 
 const apiUrl = "https://api.gravesoft.dev/msdl/"
