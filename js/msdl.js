@@ -132,15 +132,14 @@ function onDownloadsXhrChange() {
         response.ProductDownloadOptions.forEach(option => {
             let optionContainer = document.createElement('div');
 
+            let header = document.createElement('h1');
+            header.textContent = `Windows 11 ${option.LocalizedLanguage}`
+
             let downloadButton = document.createElement('a');
             downloadButton.href = option.Uri;
             downloadButton.textContent = `Download ${option.LocalizedProductDisplayName}`;
             downloadButton.target = "_blank";
             optionContainer.appendChild(downloadButton);
-
-            let info = document.createElement('p');
-            info.textContent = `Language: ${option.LocalizedLanguage}`;
-            optionContainer.appendChild(info);
 
             msContent.appendChild(optionContainer);
         });
@@ -159,6 +158,11 @@ function getFromServer() {
     xhr.send();
 }
 
+function getFileNameFromLink(link) {
+    let raw_link = link.split('?')[0];
+    return raw_link.split('/').pop();
+}
+
 function displayResponseFromServer() {
     pleaseWait.style.display = "none";
 
@@ -174,20 +178,20 @@ function displayResponseFromServer() {
     msContent.style.display = "block";
 
     if (response.ProductDownloadOptions && response.ProductDownloadOptions.length > 0) {
+        let header = document.createElement('h2');
+        header.textContent = `${response.ProductDownloadOptions[0].ProductDisplayName} ${response.ProductDownloadOptions[0].LocalizedLanguage}`
+        msContent.appendChild(header);
+            
         response.ProductDownloadOptions.forEach(option => {
-            let optionContainer = document.createElement('div');
-
             let downloadButton = document.createElement('a');
             downloadButton.href = option.Uri;
-            downloadButton.textContent = `Download ${option.LocalizedProductDisplayName}`;
+            downloadButton.textContent = getFileNameFromLink(option.Uri);
             downloadButton.target = "_blank";
-            optionContainer.appendChild(downloadButton);
-
-            let info = document.createElement('p');
-            info.textContent = `Language: ${option.LocalizedLanguage}`;
-            optionContainer.appendChild(info);
-
-            msContent.appendChild(optionContainer);
+    
+            let br = document.createElement('br');
+    
+            msContent.appendChild(downloadButton);
+            msContent.appendChild(br);
         });
     } else {
         msContent.innerHTML = "<p>No download options available.</p>";
